@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
-import { schema } from "./userSchema.js";
+import { schema } from "./utils.js";
 
 const app = express();
 
@@ -83,12 +83,12 @@ app.delete("/user/:id", async (req, res) => {
   });
   if (!user) return res.status(404).send("User not found!");
 
-  const deletedUser = await prisma.user.delete({
+  await prisma.user.delete({
     where: {
       id: req.params.id,
     },
   });
-  return res.send(deletedUser);
+  return res.status(204).send([]);
 });
 
 app.listen(process.env.PORT || 3000);
