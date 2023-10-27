@@ -85,7 +85,7 @@ app.put("/patinete/:id", async (req, res) => {
     where: { id: patinete.id },
     data: patineteData,
   });
-  return res.status(201).send(updated);
+  return res.status(200).send(updated);
 });
 
 app.delete("/patinete/:id", async (req, res) => {
@@ -98,6 +98,32 @@ app.delete("/patinete/:id", async (req, res) => {
     where: { id: req.params.id },
   });
   return res.status(204).send([]);
+});
+
+app.patch("/patinete/:id", async (req, res) => {
+  const patinete = await prisma.patinete.findUnique({
+    where: { id: req.params.id },
+  });
+  if (!patinete) return res.status(404).send("Patinete not found!");
+
+  const patineteData = {
+    status: req.body.status,
+    rentAt: new Date(req.body.rentAt),
+  };
+
+  const patchSchema = Joi.object({
+    status: Joi.string().required().valid("DISPONIVEL", "ALUGADO", "INATIVO"),
+    rentAt: Joi.date().iso().required().allow(null),
+  });
+
+  const { error } = patchSchema.validate(patineteData);
+  if (error) return res.status(400).send(error.details[0].message);
+
+  const updated = await prisma.patinete.update({
+    where: { id: patinete.id },
+    data: patineteData,
+  });
+  return res.status(200).send(updated);
 });
 
 app.listen(process.env.PORT || 3001);
