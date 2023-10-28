@@ -14,5 +14,5 @@ model Aluguel {
   id         String    @id @unique @default(uuid())
   inicio     DateTime  @default(now())
   fim        DateTime?
-  idPatinete String    @unique
+  idPatinete String
 }

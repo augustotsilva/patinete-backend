@@ -108,7 +108,7 @@ app.patch("/patinete/:id", async (req, res) => {
 
   const patineteData = {
     status: req.body.status,
-    rentAt: new Date(req.body.rentAt),
+    rentAt: req.body.rentAt,
   };
 
   const patchSchema = Joi.object({
@@ -119,9 +119,21 @@ app.patch("/patinete/:id", async (req, res) => {
   const { error } = patchSchema.validate(patineteData);
   if (error) return res.status(400).send(error.details[0].message);
 
+  if (patineteData.rentAt === null) {
+    const rentAt = null;
+    const updated = await prisma.patinete.update({
+      where: { id: patinete.id },
+      data: {
+        ...patineteData,
+        rentAt,
+      },
+    });
+    return res.send(updated);
+  }
+
   const updated = await prisma.patinete.update({
     where: { id: patinete.id },
-    data: patineteData,
+    data: { ...patineteData, rentAt: new Date(patineteData.rentAt) },
   });
   return res.status(200).send(updated);
 });
