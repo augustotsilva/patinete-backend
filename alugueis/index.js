@@ -130,15 +130,8 @@ app.patch("/aluguel/:id", async (req, res) => {
 
   if (!response.ok) return res.status(400).send("Could not modify patinete!");
 
-  const aluguelModified = await prisma.aluguel.update({
-    where: { id: aluguel.id },
-    data: {
-      fim: new Date(),
-    },
-  });
-
   const reset = await fetch(
-    `http://localhost:3003/controle/${aluguelModified.idPatinete}?type=end`,
+    `http://localhost:3003/controle/${aluguel.idPatinete}?type=end`,
     {
       method: "GET",
       headers: {
@@ -154,6 +147,28 @@ app.patch("/aluguel/:id", async (req, res) => {
   if (resetResponse.type === "end") {
     console.log("Patinete has been successfully reset!");
   }
+
+  const registerPayment = await fetch(`http://localhost:3004/pagamento`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      cartao: "1234 5678 9012 3456",
+      amount: Math.ceil(Math.random() * 100),
+      aluguelId: aluguel.id,
+    }),
+  });
+
+  if (!registerPayment.ok)
+    return res.status(400).send("Could not register payment!");
+
+  const aluguelModified = await prisma.aluguel.update({
+    where: { id: aluguel.id },
+    data: {
+      fim: new Date(),
+    },
+  });
 
   return res.send(aluguelModified);
 });
